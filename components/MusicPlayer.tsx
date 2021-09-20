@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import {
   StyleSheet,
@@ -8,26 +8,65 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
+  FlatList,
+  Animated,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { songs } from '../constants/Data';
 const { width } = Dimensions.get('window');
 
 const MusicPlayer: FC = () => {
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const [songIndex, setSongIndex] = useState(0);
+
+  useEffect(() => {
+    scrollX.addListener(({ value }) => {
+      const index = Math.round(value / width);
+      setSongIndex(index);
+    });
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* album coVER */}
       <View style={styles.mainContainer}>
-        <View style={styles.albumSong}>
-          <Image
-            source={require('../assets/albumCover3.jpg')}
-            style={styles.albumSongImage}
-          />
-        </View>
+        {/* list of songs */}
+        <Animated.FlatList
+          data={songs}
+          renderItem={({ item }) => (
+            <Animated.View
+              style={{
+                width: width,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <View style={styles.albumSong}>
+                <Image source={item.image} style={styles.albumSongImage} />
+              </View>
+            </Animated.View>
+          )}
+          keyExtractor={(item) => item.id}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          scrollEventThrottle={16}
+          onScroll={Animated.event(
+            [
+              {
+                nativeEvent: {
+                  contentOffset: { x: scrollX },
+                },
+              },
+            ],
+            { useNativeDriver: true }
+          )}
+        />
 
         {/* artist name */}
         <View>
-          <Text style={styles.title}>Song Title</Text>
-          <Text style={styles.artist}>Song Artist Name</Text>
+          <Text style={styles.title}>{songs[songIndex].title}</Text>
+          <Text style={styles.artist}>{songs[songIndex].artist}</Text>
         </View>
 
         <View>
@@ -51,16 +90,22 @@ const MusicPlayer: FC = () => {
         {/* player buttons */}
         <View style={styles.musicContainer}>
           <TouchableOpacity>
-            <Ionicons name='play-skip-back-outline' size={40} color='#FFD369' />
+            <Ionicons
+              name='play-skip-back-outline'
+              size={40}
+              color='#FFD369'
+              style={{ marginTop: 25 }}
+            />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Ionicons name='ios-pause-circle' size={40} color='#FFD369' />
+            <Ionicons name='ios-pause-circle' size={75} color='#FFD369' />
           </TouchableOpacity>
           <TouchableOpacity>
             <Ionicons
               name='play-skip-forward-outline'
               size={40}
               color='#FFD369'
+              style={{ marginTop: 25 }}
             />
           </TouchableOpacity>
         </View>
@@ -72,22 +117,22 @@ const MusicPlayer: FC = () => {
           <TouchableOpacity>
             <MaterialCommunityIcons
               name='heart-outline'
-              size={24}
+              size={28}
               color='#777777'
             />
           </TouchableOpacity>
           <TouchableOpacity>
-            <MaterialCommunityIcons name='repeat' size={24} color='#777777' />
+            <MaterialCommunityIcons name='repeat' size={28} color='#777777' />
           </TouchableOpacity>
           <TouchableOpacity>
             <MaterialCommunityIcons
               name='share-outline'
-              size={24}
+              size={28}
               color='#777777'
             />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Ionicons name='ellipsis-horizontal' size={24} color='#777777' />
+            <Ionicons name='ellipsis-horizontal' size={28} color='#777777' />
           </TouchableOpacity>
         </View>
       </View>
@@ -170,6 +215,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '60%',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginVertical: 20,
   },
 });
