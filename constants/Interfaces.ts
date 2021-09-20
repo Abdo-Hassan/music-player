@@ -5,4 +5,5 @@ export interface ISongs {
   title: string;
   artist: string;
   image: ImageSourcePropType;
+  song: number;
 }

@@ -10,10 +10,12 @@
   "dependencies": {
     "@react-native-community/slider": "3.0.3",
     "expo": "~42.0.1",
+    "expo-av": "^9.2.3",
     "expo-status-bar": "~1.0.4",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-42.0.0.tar.gz",
+    "react-native-track-player": "^2.1.0",
     "react-native-web": "~0.13.12"
   },
   "devDependencies": {

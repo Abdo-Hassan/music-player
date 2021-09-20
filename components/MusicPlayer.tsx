@@ -11,57 +11,115 @@ import {
   FlatList,
   Animated,
 } from 'react-native';
+import { Audio } from 'expo-av';
 import Slider from '@react-native-community/slider';
 import { songs } from '../constants/Data';
 const { width } = Dimensions.get('window');
 
 const MusicPlayer: FC = () => {
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const [sound, setSound] = useState<Audio.Sound>();
   const [songIndex, setSongIndex] = useState(0);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const songSlider = useRef<FlatList | null>(null);
+
+  const playWithScroll = async () => {
+    if (songIndex > -1) {
+      const { sound } = await Audio.Sound.createAsync(songs[songIndex].song);
+      await sound?.playAsync();
+    }
+  };
+
+  useEffect(() => {
+    playWithScroll();
+  }, []);
+
+  useEffect(() => {
+    return sound
+      ? () => {
+          console.log('Unloading Sound');
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
+
+  // const playSong = async () => {
+  //   console.log('Loading Sound');
+  //   const { sound } = await Audio.Sound.createAsync(
+  //     require('../assets/tracks/track1.mp3')
+  //   );
+  //   setSound(sound);
+
+  //   await sound?.playAsync();
+  // };
+
+  // const pauseSong = async () => {
+  //   await sound?.pauseAsync();
+  //   console.log('Pause Sound');
+  // };
+
+  const skipToForward = () => {
+    // @ts-ignore
+    songSlider.current.scrollToOffset({
+      offset: (songIndex + 1) * width,
+    });
+  };
+
+  const skipToPrevious = () => {
+    // @ts-ignore
+    songSlider?.current.scrollToOffset({
+      offset: (songIndex - 1) * width,
+    });
+  };
 
   useEffect(() => {
     scrollX.addListener(({ value }) => {
       const index = Math.round(value / width);
       setSongIndex(index);
     });
+    return () => {
+      scrollX.removeAllListeners();
+    };
   }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* album coVER */}
+      {/* album cover */}
       <View style={styles.mainContainer}>
         {/* list of songs */}
-        <Animated.FlatList
-          data={songs}
-          renderItem={({ item }) => (
-            <Animated.View
-              style={{
-                width: width,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <View style={styles.albumSong}>
-                <Image source={item.image} style={styles.albumSongImage} />
-              </View>
-            </Animated.View>
-          )}
-          keyExtractor={(item) => item.id}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          scrollEventThrottle={16}
-          onScroll={Animated.event(
-            [
-              {
-                nativeEvent: {
-                  contentOffset: { x: scrollX },
+        <View style={{ width: width }}>
+          <Animated.FlatList
+            ref={songSlider}
+            data={songs}
+            renderItem={({ item }) => (
+              <Animated.View
+                style={{
+                  width: width,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <View style={styles.albumSong}>
+                  <Image source={item.image} style={styles.albumSongImage} />
+                </View>
+              </Animated.View>
+            )}
+            keyExtractor={(item) => item.id}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            scrollEventThrottle={16}
+            onScroll={Animated.event(
+              [
+                {
+                  nativeEvent: {
+                    contentOffset: { x: scrollX },
+                  },
                 },
-              },
-            ],
-            { useNativeDriver: true }
-          )}
-        />
+              ],
+              { useNativeDriver: true }
+            )}
+          />
+        </View>
 
         {/* artist name */}
         <View>
@@ -89,7 +147,7 @@ const MusicPlayer: FC = () => {
 
         {/* player buttons */}
         <View style={styles.musicContainer}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={skipToForward}>
             <Ionicons
               name='play-skip-back-outline'
               size={40}
@@ -100,7 +158,7 @@ const MusicPlayer: FC = () => {
           <TouchableOpacity>
             <Ionicons name='ios-pause-circle' size={75} color='#FFD369' />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={skipToPrevious}>
             <Ionicons
               name='play-skip-forward-outline'
               size={40}
