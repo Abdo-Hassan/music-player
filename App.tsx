@@ -5,10 +5,10 @@ import MusicPlayer from './components/MusicPlayer';
 
 const App: FC = () => {
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style='auto' />
+    <View style={styles.container}>
+      <StatusBar style='light' />
       <MusicPlayer />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -17,8 +17,5 @@ export default App;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
